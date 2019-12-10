@@ -10,8 +10,15 @@
       "homepage": "https://github.com/christianezeani"
     }
   ],
+
+  "scripts": {
+    "test": [
+      "phpunit --testdox"
+    ]
+  },
   "require": {
-    "php": ">=5.5.0"
+    "php": ">=5.5.0",
+    "guzzlehttp/guzzle": "^6.5"
   },
   "require-dev": {
     "phpunit/phpunit": "^7.5"
