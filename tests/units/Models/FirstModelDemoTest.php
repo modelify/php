@@ -9,7 +9,7 @@ class FirstModelDemoTest extends ModelifyTestCase {
     $instance = &$this->instance();
     $model = $instance->firstModel();
     $this->assertInstanceOf(FirstModelDemo::class, $model);
-    var_dump($model->path());
+    var_dump($model->getFullPath());
   }
 
 }

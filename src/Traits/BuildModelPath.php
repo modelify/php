@@ -7,13 +7,12 @@ trait BuildModelPath {
 
   private $__path = NULL;
 
-  final public function path(): string {
+  final protected function path(): string {
     if (!is_null($this->__path)) {
       return $this->__path;
     }
 
     $path = '';
-    $this->__path = &$path;
 
     $parentList = class_parents(static::class);
     $parentList = array_reverse($parentList);
@@ -33,9 +32,19 @@ trait BuildModelPath {
     return $path;
   }
 
-  private function sanitizePath($path) {
-    if (substr($path, 0, 1) === '/') $path = substr($path, 1);
-    if (substr($path, -1) === '/') $path = substr($path, 0, -1);
+  final protected function sanitizePath($path) {
+    if (is_null($path)) $path = '';
+
+    if (substr($path, 0, 1) === '/') {
+      $path = substr($path, 1);
+      $path = $this->sanitizePath($path);
+    }
+
+    if (substr($path, -1) === '/') {
+      $path = substr($path, 0, -1);
+      $path = $this->sanitizePath($path);
+    }
+
     return $path;
   }
 

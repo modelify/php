@@ -5,6 +5,6 @@ use Modelify\Model;
 
 class FirstModelDemo extends Model {
 
-  const PATH = 'first';
+  const PATH = '{{first}}';
 
 }
