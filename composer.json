@@ -10,7 +10,6 @@
       "homepage": "https://github.com/christianezeani"
     }
   ],
-
   "scripts": {
     "test": [
       "phpunit --testdox"

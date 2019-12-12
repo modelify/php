@@ -1,12 +1,17 @@
 <?php
 namespace Modelify;
 
-use Modelify\Traits\ChildModelInheritance;
+use Modelify\Traits\BuildModelPath;
 
 class Model extends Data {
 
-  const MODELS = [];
+  use BuildModelPath;
 
-  use ChildModelInheritance;
+  const PATH = '';
+
+  protected function initialize() {
+    parent::initialize();
+    $this->path();
+  }
 
 }
