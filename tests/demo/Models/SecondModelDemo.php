@@ -5,4 +5,6 @@ class SecondModelDemo extends FirstModelDemo {
 
   const PATH = 'second';
 
+  const ACTIONS = [];
+
 }

@@ -9,7 +9,6 @@ class ThirdModelDemoTest extends ModelifyTestCase {
     $instance = &$this->instance();
     $model = $instance->thirdModel();
     $this->assertInstanceOf(ThirdModelDemo::class, $model);
-    var_dump($model->getFullPath('additional/path'));
   }
 
 }

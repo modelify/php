@@ -10,7 +10,13 @@ class Modelify implements ModelifyInterface {
 
   use ChildModelInheritance;
 
+  const ENDPOINT = '';
+
   const MODELS = [];
+
+  public function endpoint() {
+    return static::ENDPOINT;
+  }
 
   public function __call($name, $arguments) {
     $models = $this->models();

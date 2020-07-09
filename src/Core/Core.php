@@ -1,27 +1,124 @@
 <?php
+
 namespace Modelify\Core;
 
+use Closure;
+use Modelify\Exceptions\Exception;
+use Modelify\Exceptions\InvalidMethodException;
+use Modelify\Interfaces\Castable;
 use Modelify\Interfaces\ModelifyInterface;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 
-class Core {
+class Core implements Castable {
 
   /**
    * @ignore
    *
    * @var ModelifyInterface
    */
-  private $_app;
+  private $xApp;
 
   function __construct(ModelifyInterface &$app) {
-    $this->_app = &$app;
+    $this->xApp = &$app;
+
+    try {
+      $this->call('initialize');
+    } catch (InvalidMethodException $e) {
+      // ...
+    }
   }
 
-  protected function initialize() {
-    //
+  public static function from(ModelifyInterface &$app, ...$params) {
+    return new static($app, ...$params);
   }
 
-  final public function app() {
-    return $this->_app;
+  final protected function app() {
+    return $this->xApp;
+  }
+
+  final protected function c(string $className, ...$args): Core {
+    if (!is_subclass_of($className, self::class)) {
+      throw new Exception("Class '{$className}' not a subclass of '".self::class."'");
+    }
+
+    return new $className($this->xApp, ...$args);
+  }
+
+  final protected function call($name, array $parameters = []) {
+    try {
+      $method = new ReflectionMethod(static::class, $name);
+
+      if ($method->isPrivate()) {
+        $classMethod = static::class.'::'.$name;
+        throw new InvalidMethodException("'{$classMethod}' cannot be private.");
+      }
+
+      return $method->invokeArgs($this, $parameters);
+    } catch (ReflectionException $e) {
+      throw new InvalidMethodException($e->getMessage(), $e->getCode());
+    }
+  }
+
+  final protected function implodeConstants($name, string $glue = '/') {
+    $values = self::getConstantValues(static::class, $name);
+
+    $values = array_map(function ($value) use ($glue) {
+      return trim($value, $glue);
+    }, $values);
+
+    return implode($glue, $values);
+  }
+
+  final protected function mergeConstants($name) {
+    $values = self::getConstantValues(static::class, $name);
+    return array_merge(...$values);
+  }
+
+  final protected static function getConstantValues($class, $name, array $values = []): array {
+    try {
+      if (!($class instanceof ReflectionClass)) {
+        $class = new ReflectionClass(static::class);
+      }
+
+      if ($class->hasConstant($name)) {
+        $constant = $class->getReflectionConstant($name);
+        // Check if constant is declared by this class
+        if ($constant->getDeclaringClass()->name === $class->name) {
+          array_unshift($values, $constant->getValue());
+        }
+      }
+
+      if ($parent = $class->getParentClass()) {
+        return self::getConstantValues($parent, $name, $values);
+      }
+    } catch (ReflectionException $e) {
+      return $values;
+    }
+
+    return $values;
+  }
+
+  final public function cast($data, string $type) {
+    if (($baseType = substr($type, -2)) === '[]') {
+      if (!is_array($data)) return NULL;
+
+      $value = [];
+
+      foreach ($data as $item) {
+        $value[] = $this->cast($item, $baseType);
+      }
+
+      return $value;
+    } else if (is_subclass_of($type, Castable::class)) {
+      $callback = Closure::fromCallable("{$type}::from");
+      return $callback($data);
+    } else if (settype($data, $type) !== false) {
+      return $data;
+    }
+
+    return NULL;
   }
 
 }

@@ -5,11 +5,23 @@ use ModelifyTestCase;
 
 class FirstModelDemoTest extends ModelifyTestCase {
 
-  public function testCanCreateInstance() {
+  /**
+   * @var FirstModelDemo
+   */
+  protected $model;
+
+  protected function setUp() {
     $instance = &$this->instance();
-    $model = $instance->firstModel();
-    $this->assertInstanceOf(FirstModelDemo::class, $model);
-    var_dump($model->getFullPath());
+    $this->model = $instance->firstModel();
+  }
+
+  public function testCanCreateInstance() {
+    $this->assertInstanceOf(FirstModelDemo::class, $this->model);
+  }
+
+  public function testCanCallAction() {
+    $model = $this->model->create();
+    // $this->assertInstanceOf(FirstModelDemo::class, $model);
   }
 
 }

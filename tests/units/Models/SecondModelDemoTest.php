@@ -9,7 +9,6 @@ class SecondModelDemoTest extends ModelifyTestCase {
     $instance = &$this->instance();
     $model = $instance->secondModel();
     $this->assertInstanceOf(SecondModelDemo::class, $model);
-    var_dump($model->getFullPath());
   }
 
 }
