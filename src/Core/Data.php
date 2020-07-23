@@ -3,17 +3,18 @@
 namespace Modelify\Core;
 
 use JsonSerializable;
-use Modelify\Exceptions\InvalidMethodException;
+use Modelify\Exceptions\ReflectionException;
+use Modelify\Interfaces\DataInterface;
 use Modelify\Interfaces\ModelifyInterface;
 
-class CoreData extends Core implements JsonSerializable {
+class Data extends Core implements DataInterface, JsonSerializable {
 
   const FIELDS = [];
 
   /**
    * Field Information
    *
-   * @var FieldInfo[]
+   * @var Field[]
    */
   private $xFields;
 
@@ -30,7 +31,7 @@ class CoreData extends Core implements JsonSerializable {
     $fields = $this->mergeConstants('FIELDS');
 
     foreach ($fields as $name => $info) {
-      $this->xFields[$name] = $this->makeFieldInfo($name, $info);
+      $this->xFields[$name] = $this->makeField($name, $info);
     }
 
     $this->fill($data);
@@ -50,8 +51,8 @@ class CoreData extends Core implements JsonSerializable {
     return (object)$this->toArray();
   }
 
-  final protected function makeFieldInfo($name, $info): FieldInfo {
-    return $this->c(FieldInfo::class, $name, $info);
+  final protected function makeField($name, $info): Field {
+    return $this->make(Field::class, $name, $info);
   }
 
   final protected function hasField($name) {
@@ -69,34 +70,50 @@ class CoreData extends Core implements JsonSerializable {
   }
 
   public function setAttribute($name, $value) {
-    if (!$this->hasField($name)) return;
+    $field = $this->getField($name);
+    if ($field === false) return;
+
+    $value = $this->cast($value, $field->type);
+
     $this->xAttributes[$name] = $value;
   }
 
+  /**
+   * @ignore
+   */
   final public function __isset($name) {
     return array_key_exists($name, $this->xAttributes);
   }
 
+  /**
+   * @ignore
+   */
   final public function __unset($name) {
     unset($this->xAttributes[$name]);
   }
 
+  /**
+   * @ignore
+   */
   final public function __get($name) {
     try {
       $method = ucfirst($name);
       $method = "get{$name}Attribute";
       return $this->call($method);
-    } catch (InvalidMethodException $e) {
+    } catch (ReflectionException $e) {
       return $this->getAttribute($name);
     }
   }
 
+  /**
+   * @ignore
+   */
   final public function __set($name, $value) {
     try {
       $method = ucfirst($name);
       $method = "set{$name}Attribute";
       return $this->call($method, [$value]);
-    } catch (InvalidMethodException $e) {
+    } catch (ReflectionException $e) {
       return $this->setAttribute($name, $value);
     }
   }

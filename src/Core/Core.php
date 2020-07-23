@@ -5,13 +5,16 @@ namespace Modelify\Core;
 use Closure;
 use Modelify\Exceptions\Exception;
 use Modelify\Exceptions\InvalidMethodException;
+use Modelify\Exceptions\ReflectionException;
 use Modelify\Interfaces\Castable;
+use Modelify\Interfaces\CoreInterface;
 use Modelify\Interfaces\ModelifyInterface;
 use ReflectionClass;
-use ReflectionException;
+use ReflectionException as GlobalReflectionException;
+// use ReflectionException;
 use ReflectionMethod;
 
-class Core implements Castable {
+class Core implements CoreInterface, Castable {
 
   /**
    * @ignore
@@ -38,7 +41,7 @@ class Core implements Castable {
     return $this->xApp;
   }
 
-  final protected function c(string $className, ...$args): Core {
+  final protected function make(string $className, ...$args): Core {
     if (!is_subclass_of($className, self::class)) {
       throw new Exception("Class '{$className}' not a subclass of '".self::class."'");
     }
@@ -52,12 +55,12 @@ class Core implements Castable {
 
       if ($method->isPrivate()) {
         $classMethod = static::class.'::'.$name;
-        throw new InvalidMethodException("'{$classMethod}' cannot be private.");
+        throw new ReflectionException("'{$classMethod}' cannot be private.");
       }
 
       return $method->invokeArgs($this, $parameters);
-    } catch (ReflectionException $e) {
-      throw new InvalidMethodException($e->getMessage(), $e->getCode());
+    } catch (GlobalReflectionException $e) {
+      throw new ReflectionException($e->getMessage(), $e->getCode());
     }
   }
 

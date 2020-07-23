@@ -1,4 +1,5 @@
 <?php
+
 namespace Modelify\Exceptions;
 
 use Exception as GlobalException;

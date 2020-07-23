@@ -5,6 +5,8 @@ namespace Modelify\Interfaces;
 interface DataInterface {
 
   /**
+   * Fill in the data
+   *
    * @param array $data
    *
    * @return void

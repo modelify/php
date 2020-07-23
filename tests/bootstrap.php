@@ -1,15 +1,15 @@
 <?php
+
+use Dotenv\Dotenv;
+
 require_once __DIR__.'/../vendor/autoload.php';
 
-spl_autoload_register(function ($className) {
-  if (substr($className, -4) !== 'Demo') return;
+$dotenv = Dotenv::create(__DIR__.'/..');
+$dotenv->load();
 
-  $className = str_replace('\\', '/', $className);
-  $path = __DIR__."/demo/{$className}.php";
-  if (!is_file($path)) return;
+$dotenv->required([
+  'MOCKAPI_KEY'
+]);
 
-  require_once $path;
-});
-
-require_once __DIR__.'/includes/ModelifyTestCase.php';
-
+define('MOCKAPI_KEY', getenv('MOCKAPI_KEY'));
+define('MOCKAPI_ENDPOINT', 'https://'.MOCKAPI_KEY.'.mockapi.io');

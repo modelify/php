@@ -1,11 +1,14 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+namespace Modelify\Tests;
 
-class ModelifyTestCase extends TestCase {
+use Modelify\Tests\MockAPI\Project;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
+
+class TestCase extends PHPUnitTestCase {
 
   /**
-   * @var ModelifyDemo
+   * @var Project
    */
   private static $instance = NULL;
 
@@ -15,7 +18,7 @@ class ModelifyTestCase extends TestCase {
 
   public static function setUpBeforeClass() {
     if (self::$instance) return;
-    self::$instance = new ModelifyDemo();
+    self::$instance = new Project();
   }
 
 }
