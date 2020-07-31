@@ -5,12 +5,22 @@ use Modelify\Action\Action;
 
 interface ModelInterface extends DataInterface {
 
-  public function getFullPath($path = NULL);
-
   /**
-   * @param Action $action
+   * Get Full Path for model
+   *
+   * @param string $path
+   *
    * @return string
    */
-  public function getActionPath(Action $action);
+  public function path($path = NULL);
+
+  /**
+   * Get all URL parameters for model
+   *
+   * @param array $params
+   *
+   * @return void
+   */
+  public function params($params = []);
 
 }

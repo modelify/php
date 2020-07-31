@@ -2,6 +2,8 @@
 namespace Modelify\Core;
 
 use GuzzleHttp\Client;
+use Modelify\Interfaces\RunnerInterface;
+use Psr\Http\Message\ResponseInterface;
 
 final class Http extends Core {
 
@@ -12,36 +14,50 @@ final class Http extends Core {
    */
   private $client;
 
-  protected function initialize() {
-    parent::initialize();
+  /**
+   * Runner
+   *
+   * @var RunnerInterface
+   */
+  private $xRunner;
 
+  protected function init(RunnerInterface &$runner) {
     // $this->client = new Client([
     //   'base_uri' => ''
     // ]);
   }
 
-  public function request($method, $path, $data = NULL, array $headers = []) {
-    return NULL;
+  private function response(ResponseInterface &$response) {
+    //
   }
 
-  public function get($path, array $data = [], array $headers = []) {
-    return $this->request('GET', $path, $data, $headers);
+  public function request($method, $path, array $options = []) {
+
+    $options = [];
+
+    $response = $this->client->request($method, $path, $options);
+
+    return $this->response($response);
   }
 
-  public function post($path, array $data = [], array $headers = []) {
-    return $this->request('POST', $path, $data, $headers);
+  public function get($path, array $options = []) {
+    return $this->request('GET', $path, $options);
   }
 
-  public function patch($path, array $data = [], array $headers = []) {
-    return $this->request('PATCH', $path, $data, $headers);
+  public function post($path, array $options = []) {
+    return $this->request('POST', $path, $options);
   }
 
-  public function put($path, $data = NULL, array $headers = []) {
-    return $this->request('PUT', $path, $data, $headers);
+  public function patch($path, array $options = []) {
+    return $this->request('PATCH', $path, $options);
   }
 
-  public function delete($path, $data = NULL, array $headers = []) {
-    return $this->request('DELETE', $path, $data, $headers);
+  public function put($path, array $options = []) {
+    return $this->request('PUT', $path, $options);
+  }
+
+  public function delete($path, array $options = []) {
+    return $this->request('DELETE', $path, $options);
   }
 
 }

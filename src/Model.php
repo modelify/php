@@ -1,13 +1,11 @@
 <?php
 namespace Modelify;
 
-use Modelify\Action\Action;
-use Modelify\Core\Runner;
-use Modelify\Exceptions\ActionDoesNotExistException;
-use Modelify\Exceptions\InvalidMethodException;
+use Modelify\Core\Action;
+use Modelify\Core\Data;
+use Modelify\Exceptions\ActionException;
+use Modelify\Exceptions\ReflectionException;
 use Modelify\Interfaces\ModelInterface;
-use Modelify\Traits\BuildModelParams;
-use Modelify\Traits\BuildModelPath;
 
 class Model extends Data implements ModelInterface {
 
@@ -28,22 +26,41 @@ class Model extends Data implements ModelInterface {
   private $xParams;
 
   /**
-   * @var Runner
-   */
-  private $xRunner;
-
-  /**
    * @var array
    */
   private $xActions = [];
 
-  protected function initialize() {
+  protected function init(array $data = []) {
+    parent::init($data);
+
+    // Initialize Path
     $this->xPath = $this->implodeConstants('PATH');
 
+    // Initialize URL Parameters
     $this->xParams = $this->mergeConstants('PARAMS');
-    $this->xActions = $this->mergeConstants('ACTIONS');
 
-    $this->xRunner = $this->c(Runner::class, $this);
+    // Initialize Actions
+    $actions = $this->mergeConstants('ACTIONS');
+
+    foreach ($actions as $name => &$action) {
+      $this->xActions[$name] = $this->makeAction($name, $action);
+    }
+  }
+
+  final public function path($path = NULL) {
+    $fullPath = $this->xPath;
+
+    $path = trim($path, '/');
+
+    if (!empty($path)) {
+      $fullPath .= '/'.$path;
+    }
+
+    return $fullPath;
+  }
+
+  final public function params($params = []) {
+    return array_merge([], $this->xParams, $params);
   }
 
   /**
@@ -52,9 +69,8 @@ class Model extends Data implements ModelInterface {
    * @param array $info
    * @return Action
    */
-  private function makeAction($info) {
-    $action = $this->c(Action::class, $info);
-    return $action;
+  private function makeAction($name, $info) {
+    return $this->make(Action::class, $this, $name, $info);
   }
 
   final public function getFullPath($path = NULL) {
@@ -66,33 +82,22 @@ class Model extends Data implements ModelInterface {
     return $fullPath;
   }
 
-  final public function getActionPath($name) {
-    $action = $this->getAction($name);
-    if (!array_key_exists('path', $action)) $action['path'] = '';
-    if (!array_key_exists('params', $action)) $action['params'] = [];
-
-    $fullPath = $this->getFullPath($action['path']);
-    $params = array_merge($this->xParams, $action['params']);
-
-    return $this->interpolate($fullPath, $params);
-  }
-
   public function hasAction($name) {
     return array_key_exists($name, $this->xActions);
   }
 
-  public function getAction($name) {
+  public function getAction($name): Action {
     if (!$this->hasAction($name)) {
       $message = "Action '{$name}' does not exist!";
-      throw new ActionDoesNotExistException($message);
+      throw new ActionException($message);
     }
 
     return $this->xActions[$name];
   }
 
-  final public function callAction($name, ...$arguments) {
+  final protected function callAction($name, ...$arguments) {
     $action = $this->getAction($name);
-    return $this->xRunner->run($action, ...$arguments);
+    return $action->exec(...$arguments);
   }
 
   final public function __call($name, $arguments) {
@@ -100,7 +105,7 @@ class Model extends Data implements ModelInterface {
       $method = ucfirst($name);
       $method = "call{$method}Action";
       return $this->call($method, $arguments);
-    } catch (InvalidMethodException $e) {
+    } catch (ReflectionException $e) {
       return $this->callAction($name, ...$arguments);
     }
   }

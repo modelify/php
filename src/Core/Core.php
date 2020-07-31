@@ -4,17 +4,16 @@ namespace Modelify\Core;
 
 use Closure;
 use Modelify\Exceptions\Exception;
-use Modelify\Exceptions\InvalidMethodException;
 use Modelify\Exceptions\ReflectionException;
 use Modelify\Interfaces\Castable;
 use Modelify\Interfaces\CoreInterface;
 use Modelify\Interfaces\ModelifyInterface;
-use ReflectionClass;
-use ReflectionException as GlobalReflectionException;
-// use ReflectionException;
-use ReflectionMethod;
+use Modelify\Traits\CallReflectionMethod;
+use Modelify\Traits\ManageConstants;
 
 class Core implements CoreInterface, Castable {
+
+  use CallReflectionMethod, ManageConstants;
 
   /**
    * @ignore
@@ -23,12 +22,12 @@ class Core implements CoreInterface, Castable {
    */
   private $xApp;
 
-  function __construct(ModelifyInterface &$app) {
+  final function __construct(ModelifyInterface &$app, ...$args) {
     $this->xApp = &$app;
 
     try {
-      $this->call('initialize');
-    } catch (InvalidMethodException $e) {
+      $this->call('init', $args);
+    } catch (ReflectionException $e) {
       // ...
     }
   }
@@ -41,66 +40,16 @@ class Core implements CoreInterface, Castable {
     return $this->xApp;
   }
 
+  final protected function &config() {
+    return $this->xApp->config();
+  }
+
   final protected function make(string $className, ...$args): Core {
     if (!is_subclass_of($className, self::class)) {
       throw new Exception("Class '{$className}' not a subclass of '".self::class."'");
     }
 
     return new $className($this->xApp, ...$args);
-  }
-
-  final protected function call($name, array $parameters = []) {
-    try {
-      $method = new ReflectionMethod(static::class, $name);
-
-      if ($method->isPrivate()) {
-        $classMethod = static::class.'::'.$name;
-        throw new ReflectionException("'{$classMethod}' cannot be private.");
-      }
-
-      return $method->invokeArgs($this, $parameters);
-    } catch (GlobalReflectionException $e) {
-      throw new ReflectionException($e->getMessage(), $e->getCode());
-    }
-  }
-
-  final protected function implodeConstants($name, string $glue = '/') {
-    $values = self::getConstantValues(static::class, $name);
-
-    $values = array_map(function ($value) use ($glue) {
-      return trim($value, $glue);
-    }, $values);
-
-    return implode($glue, $values);
-  }
-
-  final protected function mergeConstants($name) {
-    $values = self::getConstantValues(static::class, $name);
-    return array_merge(...$values);
-  }
-
-  final protected static function getConstantValues($class, $name, array $values = []): array {
-    try {
-      if (!($class instanceof ReflectionClass)) {
-        $class = new ReflectionClass(static::class);
-      }
-
-      if ($class->hasConstant($name)) {
-        $constant = $class->getReflectionConstant($name);
-        // Check if constant is declared by this class
-        if ($constant->getDeclaringClass()->name === $class->name) {
-          array_unshift($values, $constant->getValue());
-        }
-      }
-
-      if ($parent = $class->getParentClass()) {
-        return self::getConstantValues($parent, $name, $values);
-      }
-    } catch (ReflectionException $e) {
-      return $values;
-    }
-
-    return $values;
   }
 
   final public function cast($data, string $type) {

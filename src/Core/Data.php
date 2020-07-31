@@ -5,7 +5,6 @@ namespace Modelify\Core;
 use JsonSerializable;
 use Modelify\Exceptions\ReflectionException;
 use Modelify\Interfaces\DataInterface;
-use Modelify\Interfaces\ModelifyInterface;
 
 class Data extends Core implements DataInterface, JsonSerializable {
 
@@ -25,9 +24,7 @@ class Data extends Core implements DataInterface, JsonSerializable {
    */
   private $xAttributes = [];
 
-  final function __construct(ModelifyInterface &$app, array $data = []) {
-    parent::__construct($app);
-
+  protected function init(array $data = []) {
     $fields = $this->mergeConstants('FIELDS');
 
     foreach ($fields as $name => $info) {

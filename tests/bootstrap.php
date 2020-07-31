@@ -12,4 +12,3 @@ $dotenv->required([
 ]);
 
 define('MOCKAPI_KEY', getenv('MOCKAPI_KEY'));
-define('MOCKAPI_ENDPOINT', 'https://'.MOCKAPI_KEY.'.mockapi.io');

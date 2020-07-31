@@ -1,57 +1,58 @@
 <?php
 namespace Modelify\Core;
 
-use Modelify\Action\Action;
-use Modelify\Interfaces\ModelifyInterface;
 use Modelify\Interfaces\ModelInterface;
+use Modelify\Interfaces\RunnerInterface;
 
-final class Runner extends Core {
+class Runner extends Core implements RunnerInterface {
 
   /**
    * @ignore
    *
    * @var ModelInterface
    */
-  private $model;
+  private $xModel;
 
   /**
    * @ignore
    *
    * @var string
    */
-  private $modelClass;
+  private $xModelClass;
+
+  protected function init(ModelInterface &$model) {
+    $this->http = $this->make(Http::class);
+
+    $this->xModelClass = get_class($model);
+    $this->xModel = &$model;
+  }
 
   /**
-   * @ignore
+   * Model Class
    *
-   * @var Http
+   * @return string
    */
-  private $http;
+  final protected function &modelClass() {
+    return $this->xModelClass;
+  }
 
-  final function __construct(ModelifyInterface &$app, ModelInterface &$model) {
-    parent::__construct($app);
-    $this->http = $this->c(Http::class);
-    $this->modelClass = get_class($model);
-    $this->model = &$model;
+  /**
+   * Model
+   *
+   * @return ModelInterface
+   */
+  final protected function &model() {
+    return $this->xModel;
   }
 
   /**
    * Runs an action called from Model
    *
-   * @param Action $action
    * @param array $data
    * @return mixed
    */
-  public function run(Action $action, array $data = []) {
-    $path = $this->model->getActionPath($action);
-    $returnType = (isset($action->returns)) ? $action->returns : $this->modelClass;
-
-    $this->model->fill($data);
-
-    $newData = $this->model->toArray();
-    $response = $this->http->request($action->method, $path, $newData);
-
-    return $this->cast($returnType, $response);
+  public function run(Action &$action, array $data = []) {
+    //
   }
 
 }

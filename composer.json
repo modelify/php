@@ -32,7 +32,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Modelify\\Tests\\": "tests/classes"
+      "Modelify\\Tests\\Classes\\": "tests/classes",
+      "Modelify\\Tests\\Cases\\": "tests/cases"
     },
     "files": []
   }

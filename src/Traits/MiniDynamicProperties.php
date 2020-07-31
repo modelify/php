@@ -13,12 +13,6 @@ trait MiniDynamicProperties {
    */
   private $xData = [];
 
-  final function __construct(ModelifyInterface &$app, string $name, array $data = []) {
-    parent::__construct($app);
-    $data['name'] = $name;
-    $this->merge($data);
-  }
-
   /**
    * @ignore
    *
@@ -33,7 +27,7 @@ trait MiniDynamicProperties {
    *
    * @return mixed
    */
-  private function &getDefinedFields() {
+  private function getDefinedFields() {
     if (!$this->hasDefinedFields()) return NULL;
     return constant(self::class . '::FIELDS');
   }
